@@ -14,9 +14,9 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@repo/ui-native':
+      '@repo/nativewindui':
         specifier: workspace:*
-        version: link:../../packages/ui-native
+        version: link:../../packages/nativewindui
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -266,9 +266,7 @@ importers:
         specifier: ^9
         version: 9.39.4(jiti@2.6.1)
 
-  packages/typescript-config: {}
-
-  packages/ui-native:
+  packages/nativewindui:
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -285,6 +283,8 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/typescript-config: {}
 
 packages:
 
@@ -8203,9 +8203,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.81.0': {}
 
