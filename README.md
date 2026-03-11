@@ -1,8 +1,8 @@
-# Template Monorepo
+# nextjs-expo-monorepo
 
 > 🚀 A production-ready monorepo template with **Next.js + shadcn/ui** for web and **Expo + NativeWind UI** for mobile. Built with pnpm & Turborepo.
 
-[![GitHub](https://img.shields.io/badge/GitHub-brain--byt--es%2Ftemplate--monorepo-blue?logo=github)](https://github.com/brain-byt-es/template-monorepo)
+[![GitHub](https://img.shields.io/badge/GitHub-brain--byt--es%2Fnextjs--expo--monorepo-blue?logo=github)](https://github.com/brain-byt-es/nextjs-expo-monorepo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node 20+](https://img.shields.io/badge/Node-20%2B-green)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.32%2B-blue)](https://pnpm.io/)
