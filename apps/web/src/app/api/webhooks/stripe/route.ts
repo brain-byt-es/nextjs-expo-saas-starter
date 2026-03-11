@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-15",
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Initialize Supabase with service role key for server-side operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
 
 /**
  * POST /api/webhooks/stripe
@@ -46,37 +53,134 @@ export async function POST(request: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         console.log("Checkout completed:", session.id);
-        // TODO: Update user subscription status in database
-        // const userId = session.metadata?.userId;
-        // await db.users.update(userId, { subscriptionId: session.subscription });
+
+        if (session.customer && session.subscription) {
+          try {
+            // Get customer email from Stripe
+            const customer = await stripe.customers.retrieve(
+              session.customer as string
+            );
+
+            // Update user subscription in Supabase
+            const { error } = await supabase
+              .from("user_subscriptions")
+              .upsert(
+                {
+                  stripe_customer_id: session.customer as string,
+                  stripe_subscription_id: session.subscription as string,
+                  status: "active",
+                  email: customer.email,
+                  updated_at: new Date().toISOString(),
+                },
+                { onConflict: "stripe_customer_id" }
+              );
+
+            if (error) {
+              console.error("Error updating subscription:", error);
+            }
+          } catch (err) {
+            console.error("Error processing checkout session:", err);
+          }
+        }
         break;
       }
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         console.log("Subscription updated:", subscription.id);
-        // TODO: Update subscription status in database
+
+        try {
+          const { error } = await supabase
+            .from("user_subscriptions")
+            .update({
+              status: subscription.status,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_subscription_id", subscription.id);
+
+          if (error) {
+            console.error("Error updating subscription status:", error);
+          }
+        } catch (err) {
+          console.error("Error processing subscription update:", err);
+        }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         console.log("Subscription deleted:", subscription.id);
-        // TODO: Cancel subscription in database
+
+        try {
+          const { error } = await supabase
+            .from("user_subscriptions")
+            .update({
+              status: "canceled",
+              canceled_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_subscription_id", subscription.id);
+
+          if (error) {
+            console.error("Error canceling subscription:", error);
+          }
+        } catch (err) {
+          console.error("Error processing subscription deletion:", err);
+        }
         break;
       }
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log("Invoice paid:", invoice.id);
-        // TODO: Update payment status
+
+        try {
+          // Record payment in Supabase
+          const { error } = await supabase
+            .from("payments")
+            .insert({
+              stripe_invoice_id: invoice.id,
+              stripe_subscription_id: invoice.subscription as string,
+              amount: invoice.amount_paid,
+              currency: invoice.currency,
+              status: "paid",
+              paid_at: new Date(invoice.paid_date! * 1000).toISOString(),
+            });
+
+          if (error) {
+            console.error("Error recording payment:", error);
+          }
+        } catch (err) {
+          console.error("Error processing payment succeeded:", err);
+        }
         break;
       }
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log("Invoice payment failed:", invoice.id);
-        // TODO: Handle failed payment
+
+        try {
+          // Record failed payment in Supabase
+          const { error } = await supabase
+            .from("payments")
+            .insert({
+              stripe_invoice_id: invoice.id,
+              stripe_subscription_id: invoice.subscription as string,
+              amount: invoice.amount_due,
+              currency: invoice.currency,
+              status: "failed",
+              failed_at: new Date().toISOString(),
+            });
+
+          if (error) {
+            console.error("Error recording failed payment:", error);
+          }
+
+          // TODO: Send email notification to user about failed payment
+        } catch (err) {
+          console.error("Error processing payment failed:", err);
+        }
         break;
       }
 
