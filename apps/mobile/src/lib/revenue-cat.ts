@@ -100,7 +100,7 @@ export const purchasePackage = async (packageId: string) => {
     }
 
     const package_ = offerings.current.availablePackages.find(
-      (pkg) => pkg.identifier === packageId
+      (pkg: any) => pkg.identifier === packageId
     );
 
     if (!package_) {

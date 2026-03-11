@@ -1,13 +1,13 @@
-import { createAuthClient } from "better-auth/react-native";
+import { createAuthClient } from "better-auth/react";
 
 /**
  * Better-Auth Client for React Native / Expo
  * Mobile-friendly authentication with persistent storage
+ * Uses React client (works on Expo/RN)
  */
 
 export const authClient = createAuthClient({
   baseURL: process.env.EXPO_PUBLIC_APP_URL || "http://localhost:3003",
-  storageKey: "auth_token",
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;
