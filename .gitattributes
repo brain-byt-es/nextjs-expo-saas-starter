@@ -1,0 +1,27 @@
+# Declare files that will always have LF line endings on checkout.
+*.js eol=lf
+*.jsx eol=lf
+*.ts eol=lf
+*.tsx eol=lf
+*.json eol=lf
+*.md eol=lf
+*.yml eol=lf
+*.yaml eol=lf
+
+# Declare files that will have the default line ending.
+*.lock -diff
+package-lock.json -diff
+pnpm-lock.yaml -diff
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.zip binary
+*.gz binary
+*.rar binary
+*.7z binary
