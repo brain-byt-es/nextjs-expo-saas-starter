@@ -21,6 +21,10 @@
   <a href="#deployment">Deploy</a>
 </p>
 
+<p align="center">
+  <img src="docs/headerimage.png" alt="SaaS Monorepo Template — web dashboard + mobile app" width="100%">
+</p>
+
 ---
 
 > **Use this template** to ship a full SaaS product — web dashboard + iOS/Android app — in days instead of months. Every integration is wired up and working out of the box.
