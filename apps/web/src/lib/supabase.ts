@@ -31,30 +31,24 @@ export function getSupabaseClient() {
 }
 
 /**
- * Typed helper for database operations
+ * Supabase Database Type Definitions
+ * Supabase JS client requires generated types for table schemas
+ * Run: supabase gen types typescript --project-id <id> > database.types.ts
+ * Phase 2 switches to Drizzle ORM for full type safety
  */
-export async function dbUpdate<T extends Record<string, unknown>>(
-  table: string,
-  data: T,
-  filter: { column: string; value: string }
-) {
-  const client = getSupabaseClient();
-  if (!client) return { error: "Supabase not configured", data: null };
 
-  return client
-    .from(table)
-    .update(data)
-    .eq(filter.column, filter.value);
+export interface SupabaseResponse<T = unknown> {
+  data: T | null;
+  error: unknown;
 }
 
-export async function dbInsert<T extends Record<string, unknown>>(
-  table: string,
-  data: T
-) {
-  const client = getSupabaseClient();
-  if (!client) return { error: "Supabase not configured", data: null };
+// TypeScript-compatible Supabase client with untyped table access
+// Requires: supabase gen types typescript
+// Or Phase 2: Drizzle ORM migration
+export type UntypedSupabaseClient = Record<string, Record<string, unknown>>;
 
-  return client.from(table).insert(data);
+export function castSupabase(): UntypedSupabaseClient {
+  return getSupabaseClient() as unknown as UntypedSupabaseClient;
 }
 
 // Export client getter as default export for convenience

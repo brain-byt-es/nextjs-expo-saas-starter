@@ -6,13 +6,21 @@ import { nextCookies } from "better-auth/next-js";
 let authInstance: any;
 
 try {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+
+  // Use PostgreSQL for production databases
   authInstance = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
     basePath: "/api/auth",
     secret: process.env.BETTER_AUTH_SECRET || "dev-secret-key",
     plugins: [nextCookies()],
     database: {
-      type: "sqlite",
+      type: "postgres",
+      url: databaseUrl,
     },
   });
 } catch (error) {

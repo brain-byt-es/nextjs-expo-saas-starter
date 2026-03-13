@@ -18,7 +18,7 @@ interface Plan {
   popular?: boolean
 }
 
-const plans: Plan[] = [
+const getPlans = (): Plan[] => [
   {
     id: "free",
     name: "Free",
@@ -47,7 +47,7 @@ const plans: Plan[] = [
       "Team collaboration",
       "Custom branding",
     ],
-    priceId: "price_1234567890",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || "price_1234567890",
     popular: true,
   },
   {
@@ -65,7 +65,7 @@ const plans: Plan[] = [
       "SLA guarantee",
       "API access",
     ],
-    priceId: "price_0987654321",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE || "price_0987654321",
   },
 ]
 
@@ -73,6 +73,7 @@ export default function PricingPage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
+  const plans = getPlans()
 
   const handleSelectPlan = async (plan: Plan) => {
     if (plan.id === "free") {

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useSession } from "@/lib/auth-client"
+import { updateProfile, changePassword } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,15 +20,33 @@ export default function SettingsPage() {
   const { data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState({
+    name: session?.user?.name || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     try {
-      // TODO: Implement profile update with Better-Auth
-      // await updateProfile({ ... })
-      setIsSaved(true)
-      setTimeout(() => setIsSaved(false), 2000)
+      if (!formData.name.trim()) {
+        setError("Name cannot be empty")
+        return
+      }
+
+      const result = await updateProfile({ name: formData.name })
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setIsSaved(true)
+        setTimeout(() => setIsSaved(false), 2000)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update profile")
     } finally {
       setIsLoading(false)
     }
@@ -35,12 +54,43 @@ export default function SettingsPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     try {
-      // TODO: Implement password change with Better-Auth
-      // await changePassword({ ... })
-      setIsSaved(true)
-      setTimeout(() => setIsSaved(false), 2000)
+      if (!formData.currentPassword || !formData.newPassword) {
+        setError("All password fields are required")
+        return
+      }
+
+      if (formData.newPassword !== formData.confirmPassword) {
+        setError("New passwords do not match")
+        return
+      }
+
+      if (formData.newPassword.length < 8) {
+        setError("New password must be at least 8 characters")
+        return
+      }
+
+      const result = await changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      })
+
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setFormData({
+          ...formData,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+        setIsSaved(true)
+        setTimeout(() => setIsSaved(false), 2000)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to change password")
     } finally {
       setIsLoading(false)
     }
@@ -52,6 +102,12 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-2">Manage your account settings and preferences</p>
       </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Profile Section */}
       <Card>
@@ -67,7 +123,8 @@ export default function SettingsPage() {
                 <Input
                   id="name"
                   placeholder="John Doe"
-                  defaultValue={session?.user?.name || ""}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   disabled={isLoading}
                 />
               </div>
@@ -78,7 +135,7 @@ export default function SettingsPage() {
                   id="email"
                   type="email"
                   placeholder="john@example.com"
-                  defaultValue={session?.user?.email || ""}
+                  value={session?.user?.email || ""}
                   disabled
                 />
                 <p className="text-xs text-muted-foreground">Email cannot be changed</p>
@@ -128,6 +185,8 @@ export default function SettingsPage() {
                   id="current-password"
                   type="password"
                   placeholder="Enter your current password"
+                  value={formData.currentPassword}
+                  onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                   disabled={isLoading}
                 />
               </div>
@@ -138,6 +197,8 @@ export default function SettingsPage() {
                   id="new-password"
                   type="password"
                   placeholder="Enter your new password"
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                   disabled={isLoading}
                 />
               </div>
@@ -148,6 +209,8 @@ export default function SettingsPage() {
                   id="confirm-password"
                   type="password"
                   placeholder="Confirm your new password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   disabled={isLoading}
                 />
               </div>

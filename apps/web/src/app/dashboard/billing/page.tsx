@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "@/lib/auth-client"
 import { createPortalSession } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { getSupabaseClient } from "@/lib/supabase"
 
 interface Plan {
   id: string
@@ -62,8 +64,40 @@ const plans: Plan[] = [
 ]
 
 export default function BillingPage() {
+  const { data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<string>("free")
+
+  useEffect(() => {
+    const fetchCurrentPlan = async () => {
+      if (!session?.user?.email) return
+
+      try {
+        const supabase = getSupabaseClient()
+        if (!supabase) return
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: subscription } = await (supabase as any)
+          .from("user_subscriptions")
+          .select("status")
+          .eq("email", session.user.email)
+          .single()
+
+        if (subscription?.status === "active" || subscription?.status === "trialing") {
+          // Default to 'pro' if there's an active subscription
+          setCurrentPlan("pro")
+        } else {
+          setCurrentPlan("free")
+        }
+      } catch (err) {
+        console.error("Error fetching subscription:", err)
+        setCurrentPlan("free")
+      }
+    }
+
+    fetchCurrentPlan()
+  }, [session?.user?.email])
 
   const handleManageSubscription = async () => {
     setIsLoading(true)

@@ -20,17 +20,21 @@ import { getSupabaseClient } from "@/lib/supabase";
 
 /**
  * Verify webhook signature from RevenueCat
- * For now, we'll accept all webhooks in development
- * In production, implement proper signature verification
+ * RevenueCat sends Authorization header with Bearer token
+ * that must match REVENUECAT_WEBHOOK_SECRET environment variable
  */
 function verifyWebhookSignature(request: NextRequest): boolean {
-  // TODO: Implement proper signature verification
-  // RevenueCat uses bearer token in Authorization header
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
 
-  // In production: verify token matches REVENUECAT_WEBHOOK_SECRET
-  return authHeader.startsWith("Bearer ");
+  const secret = process.env.REVENUECAT_WEBHOOK_SECRET;
+  if (!secret) {
+    console.warn("REVENUECAT_WEBHOOK_SECRET not configured");
+    return false;
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  return token === secret;
 }
 
 export async function POST(request: NextRequest) {
@@ -46,8 +50,7 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature
     if (!verifyWebhookSignature(request)) {
       console.warn("Invalid RevenueCat webhook signature");
-      // For development, still process the webhook
-      // return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -73,7 +76,10 @@ export async function POST(request: NextRequest) {
         console.log("Initial subscription purchase:", eventData.product_id);
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .upsert(
               {
@@ -106,7 +112,10 @@ export async function POST(request: NextRequest) {
         console.log("Subscription renewal:", eventData.product_id);
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .update({
               status: "active",
@@ -128,7 +137,10 @@ export async function POST(request: NextRequest) {
         console.log("Subscription cancelled:", eventData.product_id);
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .update({
               status: "canceled",
@@ -150,7 +162,10 @@ export async function POST(request: NextRequest) {
         console.log("Billing issue:", eventData.product_id);
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .update({
               status: "payment_failed",
@@ -189,7 +204,10 @@ export async function POST(request: NextRequest) {
         );
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .update({
               product_id: eventData.new_product_id,
@@ -210,7 +228,10 @@ export async function POST(request: NextRequest) {
         console.log("Subscription transferred:", eventData.product_id);
 
         try {
-          const { error } = await supabase!
+          // Supabase: cast to any for database operations
+          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("mobile_subscriptions")
             .update({
               store: eventData.store,

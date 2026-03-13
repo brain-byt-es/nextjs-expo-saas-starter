@@ -77,7 +77,10 @@ export async function POST(request: NextRequest) {
             const customerEmail = "deleted" in customer ? null : customer.email;
 
             // Update user subscription in Supabase
-            const { error } = await supabase
+            // Supabase: cast to any for database operations
+            // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error } = await (supabase as any)
               .from("user_subscriptions")
               .upsert(
                 {
@@ -112,7 +115,8 @@ export async function POST(request: NextRequest) {
         console.log("Subscription updated:", subscription.id);
 
         try {
-          const { error } = await supabase!
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("user_subscriptions")
             .update({
               status: subscription.status,
@@ -138,7 +142,8 @@ export async function POST(request: NextRequest) {
           const customer = await stripe.customers.retrieve(subscription.customer as string);
           const customerEmail = "deleted" in customer ? null : customer.email;
 
-          const { error } = await supabase!
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("user_subscriptions")
             .update({
               status: "canceled",
@@ -175,7 +180,8 @@ export async function POST(request: NextRequest) {
 
         try {
           // Record payment in Supabase
-          const { error } = await supabase!
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("payments")
             .insert({
               stripe_invoice_id: invoice.id,
@@ -201,7 +207,8 @@ export async function POST(request: NextRequest) {
 
         try {
           // Record failed payment in Supabase
-          const { error } = await supabase!
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error } = await (supabase as any)
             .from("payments")
             .insert({
               stripe_invoice_id: invoice.id,
