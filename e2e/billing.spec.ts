@@ -1,0 +1,65 @@
+import { test, expect } from "@playwright/test";
+
+test.describe("Billing & Pricing", () => {
+  test("pricing page renders with three plans", async ({ page }) => {
+    await page.goto("/pricing");
+
+    await expect(page.getByText("Free")).toBeVisible();
+    await expect(page.getByText("Pro")).toBeVisible();
+    await expect(page.getByText("Enterprise")).toBeVisible();
+  });
+
+  test("pricing page shows plan prices", async ({ page }) => {
+    await page.goto("/pricing");
+
+    await expect(page.getByText("$29")).toBeVisible();
+    await expect(page.getByText("$99")).toBeVisible();
+  });
+
+  test("pricing page has subscribe buttons", async ({ page }) => {
+    await page.goto("/pricing");
+
+    const buttons = page.getByRole("button");
+    await expect(buttons).toHaveCount(await buttons.count());
+
+    // Should have "Get Started" for free and "Subscribe Now" for paid
+    await expect(page.getByText("Get Started")).toBeVisible();
+    await expect(page.getByText("Subscribe Now").first()).toBeVisible();
+  });
+
+  test("free plan button redirects to signup", async ({ page }) => {
+    await page.goto("/pricing");
+
+    await page.getByText("Get Started").click();
+
+    await expect(page).toHaveURL(/\/signup/);
+  });
+
+  test("paid plan button redirects to signup if not logged in", async ({
+    page,
+  }) => {
+    await page.goto("/pricing");
+
+    await page.getByText("Subscribe Now").first().click();
+
+    // Unauthenticated users should be redirected to signup
+    await expect(page).toHaveURL(/\/signup/);
+  });
+
+  test("pricing page shows Most Popular badge", async ({ page }) => {
+    await page.goto("/pricing");
+
+    await expect(page.getByText("Most Popular")).toBeVisible();
+  });
+
+  test("pricing page has FAQ section", async ({ page }) => {
+    await page.goto("/pricing");
+
+    await expect(
+      page.getByText("Frequently Asked Questions")
+    ).toBeVisible();
+    await expect(
+      page.getByText("Can I upgrade or downgrade anytime?")
+    ).toBeVisible();
+  });
+});
