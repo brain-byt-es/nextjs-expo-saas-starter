@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const protectedRoutes = ['/dashboard', '/admin']
+const adminRoutes = ['/admin']
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Check if the route is protected
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
 
   if (!isProtected) {
@@ -17,10 +17,16 @@ export async function middleware(request: NextRequest) {
     request.cookies.get('better-auth.session_token')?.value
 
   if (!sessionCookie) {
-    // Redirect to login with return URL
     return NextResponse.redirect(
       new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url)
     )
+  }
+
+  // Admin routes require additional role check via server-side layout guard
+  // Middleware can't easily decode the JWT, so admin layout does the role check
+  if (adminRoutes.some(route => pathname.startsWith(route))) {
+    // Pass through — admin layout will verify role and redirect non-admins
+    return NextResponse.next()
   }
 
   return NextResponse.next()
