@@ -12,13 +12,11 @@ import { posthog } from "@/lib/posthog";
  */
 
 export function useFeatureFlag(flag: string): boolean {
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(() =>
+    posthog.isFeatureEnabled(flag) ?? false
+  );
 
   useEffect(() => {
-    // Check immediately
-    setEnabled(posthog.isFeatureEnabled(flag) ?? false);
-
-    // Re-check when flags are loaded/updated
     const unsubscribe = posthog.onFeatureFlags(() => {
       setEnabled(posthog.isFeatureEnabled(flag) ?? false);
     });
@@ -34,13 +32,11 @@ export function useFeatureFlag(flag: string): boolean {
 export function useFeatureFlagVariant(
   flag: string
 ): string | boolean | undefined {
-  const [variant, setVariant] = useState<string | boolean | undefined>(
-    undefined
+  const [variant, setVariant] = useState<string | boolean | undefined>(() =>
+    posthog.getFeatureFlag(flag) ?? undefined
   );
 
   useEffect(() => {
-    setVariant(posthog.getFeatureFlag(flag) ?? undefined);
-
     const unsubscribe = posthog.onFeatureFlags(() => {
       setVariant(posthog.getFeatureFlag(flag) ?? undefined);
     });

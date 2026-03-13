@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { NextRequest } from "next/server";
 
 // Mock dependencies before imports
 const mockLimit = vi.fn().mockResolvedValue({ success: true });
@@ -61,7 +62,7 @@ describe("POST /api/checkout", () => {
   it("returns 401 if user is not authenticated", async () => {
     mockGetAuthUser.mockResolvedValue(null);
 
-    const res = await POST(makeRequest({ priceId: "price_123" }) as any);
+    const res = await POST(makeRequest({ priceId: "price_123" }) as unknown as NextRequest);
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -72,7 +73,7 @@ describe("POST /api/checkout", () => {
     mockGetAuthUser.mockResolvedValue({ id: "u1", email: "a@b.com" });
     mockLimit.mockResolvedValue({ success: false });
 
-    const res = await POST(makeRequest({ priceId: "price_123" }) as any);
+    const res = await POST(makeRequest({ priceId: "price_123" }) as unknown as NextRequest);
     const json = await res.json();
 
     expect(res.status).toBe(429);
@@ -82,7 +83,7 @@ describe("POST /api/checkout", () => {
   it("returns 400 if priceId is missing", async () => {
     mockGetAuthUser.mockResolvedValue({ id: "u1", email: "a@b.com" });
 
-    const res = await POST(makeRequest({}) as any);
+    const res = await POST(makeRequest({}) as unknown as NextRequest);
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -92,7 +93,7 @@ describe("POST /api/checkout", () => {
   it("creates checkout session and returns url", async () => {
     mockGetAuthUser.mockResolvedValue({ id: "u1", email: "test@example.com" });
 
-    const res = await POST(makeRequest({ priceId: "price_pro" }) as any);
+    const res = await POST(makeRequest({ priceId: "price_pro" }) as unknown as NextRequest);
     const json = await res.json();
 
     expect(res.status).toBe(200);

@@ -48,11 +48,9 @@ export async function register() {
         getNodeAutoInstrumentations({
           // Disable noisy FS instrumentation
           "@opentelemetry/instrumentation-fs": { enabled: false },
-          // Keep HTTP, fetch, postgres, etc.
+          // Keep HTTP, postgres, etc.
           "@opentelemetry/instrumentation-http": { enabled: true },
-          "@opentelemetry/instrumentation-fetch": { enabled: true },
         }),
-        Sentry.sentryOpenTelemetryNodeInstrumentation(),
       ],
     });
 
