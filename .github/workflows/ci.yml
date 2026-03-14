@@ -75,6 +75,20 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: [build]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -94,10 +108,17 @@ jobs:
         run: pnpm build --filter=@repo/web
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: |
+          pnpm --filter @repo/web start &
+          npx wait-on http://localhost:3003 --timeout 30000
+          pnpm test:e2e
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3003
           CI: true
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+          BETTER_AUTH_SECRET: ci-test-secret-not-real
+          BETTER_AUTH_URL: http://localhost:3003
+          NEXT_PUBLIC_APP_URL: http://localhost:3003
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
