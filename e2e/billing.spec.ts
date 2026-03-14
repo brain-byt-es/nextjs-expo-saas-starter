@@ -4,10 +4,10 @@ test.describe("Billing & Pricing", () => {
   test("pricing page renders with three plans", async ({ page }) => {
     await page.goto("/pricing");
 
-    // Match plan names in card titles
-    await expect(page.getByRole("heading", { name: "Free" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Pro" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Enterprise" })).toBeVisible();
+    // Match plan descriptions which are unique per card
+    await expect(page.getByText("Perfect for trying out")).toBeVisible();
+    await expect(page.getByText("Best for growing teams")).toBeVisible();
+    await expect(page.getByText("For large organizations")).toBeVisible();
   });
 
   test("pricing page shows plan prices", async ({ page }) => {
