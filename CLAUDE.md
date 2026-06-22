@@ -161,3 +161,19 @@ See `.env.example` for all required vars. Key groups:
 
 - **Web**: `.github/workflows/ci.yml` — lint → typecheck → test → build on push/PR
 - **Mobile**: `.github/workflows/mobile.yml` — EAS Build on `v*` git tags
+
+## HARD RULE — This Is a Template, Not an App
+
+**NEVER commit domain-specific business logic to this repo.** This starter is a reusable base for multiple projects. It must stay generic.
+
+Forbidden in this repo:
+- Any product-specific DB tables (patents, watchlists, habits, invoices, ...)
+- Any product-specific API routes beyond the standard set above
+- Any product-specific Inngest jobs beyond the 4 listed above
+- Any product-specific admin pages (no `/admin/<product-name>/`)
+- Any product-specific UI pages (no `/watchlist`, `/briefings`, ...)
+- Any third-party API clients tied to one product (EPO, OPS, ...)
+
+When forking this starter for a new project: add domain logic in the fork. Never push it back here.
+
+If you are ever tempted to add product-specific code here — STOP. Create a fork instead.
